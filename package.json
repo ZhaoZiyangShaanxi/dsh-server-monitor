@@ -1,0 +1,21 @@
+{
+  "name": "dsh-server-monitor",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "DSH 内置服务器资源与控制窗口",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  }
+}
