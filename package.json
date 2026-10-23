@@ -2,14 +2,38 @@
   "name": "dsh-server-monitor",
   "version": "0.1.0",
   "type": "module",
-  "description": "DSH 内置服务器资源与控制窗口",
+  "description": "DSH 内置服务器资源监控与容器控制窗口",
+  "license": "MIT",
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "server-monitor"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZhaoZiyangShaanxi/dsh-server-monitor.git"
+  },
+  "homepage": "https://github.com/ZhaoZiyangShaanxi/dsh-server-monitor#readme",
+  "bugs": "https://github.com/ZhaoZiyangShaanxi/dsh-server-monitor/issues",
   "main": "lib/index.js",
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "immediately": true,
@@ -17,5 +41,9 @@
         "@deepseek-ai/dsh-client-ui-layout"
       ]
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
