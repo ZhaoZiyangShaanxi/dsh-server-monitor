@@ -1,5 +1,7 @@
 # dsh-server-monitor
 
+![plugin](https://img.shields.io/badge/dsh-plugin-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+
 A DeepSeek Harness (DSH) plugin that puts a server resource and control window **inside DSH** — no separate browser tab or manual tunnel.
 
 ## What it does
@@ -11,6 +13,14 @@ A DeepSeek Harness (DSH) plugin that puts a server resource and control window *
 - Maintains loopback-only SSH forwards for monitor and noVNC with automatic reconnect.
 
 ## Install
+
+Standard DSH bundle (`package.json` declares `dsh.bundle.patch` and ships `cordis.patch.yml`):
+
+```sh
+dsh plugin --profile desktop add https://github.com/ZhaoZiyangShaanxi/dsh-server-monitor
+```
+
+Manual install (development):
 
 1. Link or install this package into your DSH profile's `node_modules`.
 2. Add it to your profile patch:
