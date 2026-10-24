@@ -14,7 +14,7 @@ async function request(path,method='GET',body='',origin='http://localhost:43120'
  const res={status:0,body:'',writeHead(s,h){this.status=s;this.headers=h;},end(b){this.body=b;}};await handler(req,res);return res;
 }
 assert.equal((await request('/')).body,'fetch("/dsh-server-monitor/api/stats")');
-assert.equal(JSON.parse((await request('/api/stats')).body).vncUrl,'http://localhost:16081/');
+assert.equal(JSON.parse((await request('/api/stats')).body).vncUrl,'http://localhost:16081/?resize=scale');
 assert.equal(sshArgs.filter(a=>a.startsWith('127.0.0.1:')).length,2);
 assert.equal((await request('/api/action','POST','{"action":"restart_ast"}','http://evil.test')).status,403);
 assert.equal((await request('/api/action','POST','{"action":"restart_ast"}',null)).status,403);
