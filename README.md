@@ -6,7 +6,7 @@ A DeepSeek Harness (DSH) plugin that puts a server resource and control window *
 
 - Shows memory, swap, load, disk, per-container stats and QQ login status.
 - Buttons: clear kernel cache, restart SnowLuma / AstrBot / both.
-- QQ 登录 / QQ 退出 open the native QQ desktop **inside DSH** via noVNC. Scan the QR code or choose Sign out in QQ; stopping a container is not account logout.
+- QQ 登录 / QQ 退出 open the native QQ desktop **inside DSH** via noVNC in a near-fullscreen overlay, so the QR code and chat list stay legible. Scan the QR code or choose Sign out in QQ; stopping a container is not account logout.
 - Collapses to a small button in the shell.
 - Maintains loopback-only SSH forwards for monitor and noVNC with automatic reconnect.
 
@@ -53,6 +53,7 @@ The plugin expects `qqbot-monitor` bound to `127.0.0.1:6186` with `/api/stats` a
 ## Known limits
 
 - The QQ view is an `iframe` pointed at the local VNC forward, because a WebSocket upgrade cannot pass through the DSH host proxy. That forward must be up before you click 登录.
+- The overlay shows the whole remote desktop, so QQ keeps its own window size. A guest screen of 1366x768 or smaller (`SNOWLUMA_SCREEN`) makes it fill the frame.
 - Host-side changes take effect after DSH restarts; the desktop host runs without `--expose-internals`, so module HMR cannot reload this plugin in place.
 - 退出 only opens the QR view — you still press sign-out inside QQ. Stopping the container just takes the bot offline; it does not end the account session.
 
