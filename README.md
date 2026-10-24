@@ -50,6 +50,12 @@ The plugin expects `qqbot-monitor` bound to `127.0.0.1:6186` with `/api/stats` a
 - SSH and VNC bind locally; restrict any publicly exposed remote VNC port with your firewall.
 - No host, key path, VNC password, or token is stored in this repository. Embedded VNC assumes DSH runs on the SSH tunnel machine.
 
+## Known limits
+
+- The QQ view is an `iframe` pointed at the local VNC forward, because a WebSocket upgrade cannot pass through the DSH host proxy. That forward must be up before you click 登录.
+- Host-side changes take effect after DSH restarts; the desktop host runs without `--expose-internals`, so module HMR cannot reload this plugin in place.
+- 退出 only opens the QR view — you still press sign-out inside QQ. Stopping the container just takes the bot offline; it does not end the account session.
+
 ## Test
 
 ```bash
