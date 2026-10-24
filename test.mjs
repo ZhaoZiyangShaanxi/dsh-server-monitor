@@ -33,5 +33,19 @@ assert.equal(registration.opts.name,'shell.overlay');
 assert.match(JSON.stringify(registration.component()),/服务器管理/);
 assert.match(JSON.stringify(registration.component()),/QQ 登录/);
 assert.match(JSON.stringify(registration.component()),/QQ 退出/);
-assert.match(readFileSync(new URL('./lib/client.js',import.meta.url),'utf8'),/QQ 客户端登录与退出/);
-console.log('PASS: proxy CSRF and allowlist, VNC tunnel URL, QQ desktop panel');
+const state=[true,{qq:'unknown',vncUrl:'http://localhost:16081/?resize=scale',containers:[],host:'test',uptime:'up'},'','','',''];
+let hook=0;
+React.useState=v=>{const i=hook++;return [state[i]??v,next=>{state[i]=typeof next==='function'?next(state[i]):next;}];};
+const render=()=>{hook=0;return registration.component();};
+function find(node,predicate){
+ if(!node || typeof node!=='object')return undefined;
+ if(predicate(node))return node;
+ return (node.children||[]).map(child=>find(child,predicate)).find(Boolean);
+}
+let tree=render();
+find(tree,n=>n.tag==='button'&&n.children[0]==='QQ 登录').props.onClick();
+tree=render();
+assert.equal(find(tree,n=>n.tag==='iframe').props.src,'http://localhost:16081/?resize=scale');
+find(tree,n=>n.tag==='button'&&n.children[0]==='QQ 退出').props.onClick();
+assert.match(JSON.stringify(render()),/停止容器只会下线/);
+console.log('PASS: proxy CSRF and allowlist, VNC tunnel URL, manual QQ login/logout panel');
