@@ -6,8 +6,9 @@ A DeepSeek Harness (DSH) plugin that puts a server resource and control window *
 
 - Shows memory, swap, load, disk, per-container stats and QQ login status.
 - Buttons: clear kernel cache, restart SnowLuma / AstrBot / both.
-- Collapses to a small button and reopens from the same place in the shell.
-- Keeps its own SSH tunnel with automatic reconnect, so it never touches your other forwards.
+- QQ 登录 / QQ 退出 open the native QQ desktop **inside DSH** via noVNC. Scan the QR code or choose Sign out in QQ; stopping a container is not account logout.
+- Collapses to a small button in the shell.
+- Maintains loopback-only SSH forwards for monitor and noVNC with automatic reconnect.
 
 ## Install
 
@@ -32,19 +33,22 @@ Create `$DSH_HOME/dsh-server-monitor.json` (defaults to `~/.dsh`):
   "identityFile": "/path/to/key.pem",
   "knownHostsFile": "/path/to/known_hosts",
   "remotePort": 6186,
-  "localPort": 16186
+  "localPort": 16186,
+  "remoteVncPort": 6081,
+  "vncPort": 16081
 }
 ```
 
 ## Server side
 
-The plugin expects the existing `qqbot-monitor` service on the server: a small Python HTTP service bound to `127.0.0.1:6186` exposing `/api/stats` and `POST /api/action` (`purge_cache`, `restart_snow`, `restart_ast`, `restart_both`).
+The plugin expects `qqbot-monitor` bound to `127.0.0.1:6186` with `/api/stats` and `POST /api/action` (`purge_cache`, `restart_snow`, `restart_ast`, `restart_both`), plus SnowLuma noVNC at `127.0.0.1:6081`. The QQ desktop may require its VNC password. Login and logout happen manually in QQ; the plugin never submits credentials or deletes session data.
 
 ## Security
 
 - Control requests must be same-origin; cross-site POSTs are rejected.
-- Only four actions are allowed; no shell passthrough.
-- No host, key path, or token is stored in this repository.
+- Only four monitor actions are allowed; QQ login/logout are not API actions.
+- SSH and VNC bind locally; restrict any publicly exposed remote VNC port with your firewall.
+- No host, key path, VNC password, or token is stored in this repository. Embedded VNC assumes DSH runs on the SSH tunnel machine.
 
 ## Test
 
