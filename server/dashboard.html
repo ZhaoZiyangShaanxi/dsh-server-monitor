@@ -1,0 +1,52 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>服务器监控</title><style>
+body{margin:0;font-family:-apple-system,"Segoe UI",sans-serif;background:#0e1117;color:#e6edf3;padding:16px}
+h1{font-size:18px;margin:0 0 4px}.sub{color:#8b949e;font-size:12px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px}
+.k{color:#8b949e;font-size:12px;margin-bottom:6px}.v{font-size:22px;font-weight:600}
+.v.small{font-size:14px;font-weight:500;word-break:break-all}
+.bar{height:8px;background:#21262d;border-radius:4px;overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;background:#2f81f7;transition:width .4s}
+.warn>.v{color:#f0883e}.bad>.v{color:#f85149}.ok>.v{color:#3fb950}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#161b22;border-radius:10px;overflow:hidden;margin-bottom:16px}
+th,td{padding:10px;text-align:left;border-bottom:1px solid #21262d}th{color:#8b949e;font-size:12px}
+.ctrl{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px}
+.ctrl h2{font-size:14px;margin:0 0 10px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{padding:9px 14px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#e6edf3;font-size:13px;cursor:pointer}
+button:hover{background:#30363d}button.blue{background:#1f6feb;border-color:#1f6feb}
+button.red{background:#9e1c1c;border-color:#b62324}button:disabled{opacity:.5;cursor:wait}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#238636;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;display:none}
+</style></head><body>
+<h1>大肥鱼服务器控制台</h1><div class="sub" id="sub">加载中…</div>
+<div class="grid" id="cards"></div>
+<table><thead><tr><th>容器</th><th>CPU</th><th>内存</th><th>占用</th></tr></thead><tbody id="tb"></tbody></table>
+<div class="ctrl"><h2>控制操作</h2><div class="btns">
+<button class="blue" onclick="act('purge_cache','确定清理内核缓存？无损操作')">清理缓存</button>
+<button onclick="act('restart_snow','重启 SnowLuma？QQ 掉线几秒后自动重连')">重启 SnowLuma</button>
+<button onclick="act('restart_ast','重启 AstrBot？')">重启 AstrBot</button>
+<button class="red" onclick="act('restart_both','重启全部容器？')">全部重启</button>
+</div></div><div id="toast"></div>
+<script>
+const pct=(a,b)=>b?Math.max(0,Math.min(100,a/b*100)):0;
+function card(cls,k,v,sub,bar){return '<div class="card '+cls+'"><div class="k">'+k+'</div><div class="v">'+v+'</div>'+(sub?'<div class="k" style="margin-top:6px">'+sub+'</div>':'')+(bar!=null?'<div class="bar"><i style="width:'+bar+'%"></i></div>':'')+'</div>'}
+async function tick(){try{const r=await fetch("/api/stats",{cache:"no-store"});const d=await r.json();
+ const m=d.mem;const mp=pct(m.used_mb,m.total_mb);const sp=pct(m.swap_used_mb,m.swap_total_mb||1);
+ document.getElementById("sub").textContent=d.host+" · "+d.uptime+" · 每 5 秒刷新 · "+new Date(d.ts*1000).toLocaleTimeString();
+ document.getElementById("cards").innerHTML=
+  card(mp>85?"bad":mp>70?"warn":"ok","内存占用",mp.toFixed(0)+"%",m.used_mb+" / "+m.total_mb+" MB（可用 "+m.avail_mb+"）",mp)+
+  card(sp>70?"bad":sp>40?"warn":"ok","Swap 占用",sp.toFixed(0)+"%",m.swap_used_mb+" / "+m.swap_total_mb+" MB",sp)+
+  card(d.load[0]>d.cpu_count?"bad":"ok","1 分钟负载",d.load[0].toFixed(2),"5m "+d.load[1]+" · "+d.cpu_count+" 核")+
+  card(d.qq==="online"?"ok":"warn","QQ 登录",d.qq==="online"?"在线":"离线/未知")+
+  card("","磁盘",(d.disk.split(/\s+/)[4]||"?"),(d.disk.split(/\s+/)[2]||"")+" / "+(d.disk.split(/\s+/)[1]||"")+" 已用");
+ document.getElementById("tb").innerHTML=(d.containers||[]).map(c=>'<tr><td>'+c.name+'</td><td>'+c.cpu+'</td><td>'+c.mem+'</td><td>'+c.mem_pct+'</td></tr>').join("");
+ }catch(e){document.getElementById("sub").textContent="读取失败: "+e}}
+function toast(msg,ok){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";t.style.background=ok?"#238636":"#9e1c1c";setTimeout(()=>t.style.display="none",3000)}
+async function act(name,confirmMsg){if(!confirm(confirmMsg))return;
+ const btns=document.querySelectorAll(".ctrl button");btns.forEach(b=>b.disabled=true);
+ try{const r=await fetch("/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:name})});
+  const d=await r.json();toast(d.msg||"完成",d.ok);}catch(e){toast("执行失败: "+e,false)}
+ btns.forEach(b=>b.disabled=false);setTimeout(tick,1500)}
+tick();setInterval(tick,5000);
+</script></body></html>

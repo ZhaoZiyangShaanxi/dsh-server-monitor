@@ -1,8 +1,8 @@
 {
   "name": "dsh-server-monitor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "description": "DSH 内置服务器资源监控与容器控制窗口",
+  "description": "DSH 内置服务器资源监控与容器控制窗口（含完整服务端 agent）",
   "license": "MIT",
   "keywords": [
     "deepseek",
@@ -20,6 +20,7 @@
   "main": "lib/index.js",
   "files": [
     "lib",
+    "server",
     "cordis.patch.yml",
     "README.md",
     "LICENSE"

@@ -1,0 +1,30 @@
+# Install qqbot-monitor as a loopback-only systemd service.
+#
+#   sudo mkdir -p /opt/qqbot-monitor
+#   sudo cp server/monitor.py server/dashboard.html /opt/qqbot-monitor/
+#   sudo install -m 600 /dev/null /opt/qqbot-monitor/onebot-token   # then fill it in
+#   sudo cp server/qqbot-monitor.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now qqbot-monitor
+#
+# The unit listens on 127.0.0.1:6186 only; the DSH plugin reaches it through its
+# own SSH forward. Do not change the bind address unless you add authentication.
+[Unit]
+Description=QQBot Resource Monitor (dsh-server-monitor agent)
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/qqbot-monitor/monitor.py
+Environment=MONITOR_HOST=127.0.0.1
+Environment=MONITOR_PORT=6186
+Environment=ONEBOT_TOKEN_FILE=/opt/qqbot-monitor/onebot-token
+Environment=ONEBOT_URL=http://127.0.0.1:3000/get_status
+Restart=always
+RestartSec=3
+# The agent shells out to `docker` and reads /proc; nothing else is needed.
+NoNewPrivileges=yes
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

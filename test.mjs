@@ -25,6 +25,16 @@ assert.equal(forwarded.opts.body,'{"action":"purge_cache"}');
 assert.equal((await request('/api/action','POST','{"action":"qq_login"}')).status,400);
 assert.equal((await request('/api/action','POST','{"action":"qq_logout"}')).status,400);
 assert.equal((await request('/unexpected')).status,404);
+// The official Connection fence runs first when a Desktop host provides it.
+const realHandler=handler;
+let fenceRejection=403;
+handler=(()=>{let h;box.activate({get:()=>({requestRejection:()=>fenceRejection}),effect(fn){fn();},webServer:{register(route){h=route.handler;return ()=>{};}}});return h;})();
+const fenced=await request('/api/stats');
+assert.equal(fenced.status,403);
+assert.equal(fenced.body,'forbidden');
+fenceRejection=undefined;box.fetch=async(url)=>({status:200,text:async()=>url.endsWith('/api/stats')?'{}':'html'});
+assert.equal((await request('/api/stats')).status,200,'fence passes through when it returns undefined');
+handler=realHandler;
 box.fetch=async()=>{throw new Error('ECONNREFUSED');};
 const unavailable=await request('/api/stats');
 assert.equal(unavailable.status,503);
@@ -42,9 +52,10 @@ vm.runInNewContext(readFileSync(new URL('./lib/client.js',import.meta.url),'utf8
 const React={createElement:(tag,props,...children)=>({tag,props,children}),useState:v=>[v,()=>{}],useEffect:()=>{},useRef:v=>({current:v})};
 plugin.factory(()=>React).apply({slots:{inject(n,fn){fn();},register(opts,component){registration={opts,component};}}});
 assert.equal(registration.opts.name,'shell.overlay');
-assert.match(JSON.stringify(registration.component()),/服务器管理/);
-assert.match(JSON.stringify(registration.component()),/QQ 登录/);
-assert.match(JSON.stringify(registration.component()),/QQ 退出/);
+// An unconfigured host must not park a 502 card over the chat: first paint is collapsed.
+const firstPaint=JSON.stringify(registration.component());
+assert.ok(!firstPaint.includes('服务器管理'),'panel starts collapsed');
+assert.match(firstPaint,/服务器/);
 const state=[true,{qq:'unknown',vncUrl:'http://localhost:16081/?resize=scale',containers:[],host:'test',uptime:'up'},'','','',''];
 let hook=0;
 React.useState=v=>{const i=hook++;return [state[i]??v,next=>{state[i]=typeof next==='function'?next(state[i]):next;}];};
